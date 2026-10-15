@@ -1,0 +1,41 @@
+# Nom du fichier ONNX produit. Changez-le pour chaque nouveau mot d appel.
+# Remplacez aussi les graphies positives et les mots proches ci-dessous.
+model_name: cornelius
+target_phrase:
+  - "Corneliusse"
+  - "Cornelius"
+  - "Cornailius"
+  - "Cornailiusse"
+custom_negative_phrases:
+  - "Cornélia"
+  - "Cornélio"
+  - "Corneille"
+  - "Corne du lys"
+  - "Aurélie"
+  - "Cornel"
+  - "Corneille et Louis"
+n_samples: 20000
+n_samples_val: 2000
+tts_batch_size: 50
+augmentation_batch_size: 16
+piper_sample_generator_path: "/opt/piper-sample-generator"
+output_dir: "./output"
+rir_paths:
+  - "./data/rir"
+background_paths:
+  - "./data/background"
+background_paths_duplication_rate:
+  - 1
+false_positive_validation_data_path: "./data/features/validation_set_features.npy"
+augmentation_rounds: 1
+feature_data_files:
+  ACAV100M_sample: "./data/features/openwakeword_features_ACAV100M_2000_hrs_16bit.npy"
+batch_n_per_class:
+  ACAV100M_sample: 1024
+  adversarial_negative: 50
+  positive: 50
+model_type: dnn
+layer_size: 32
+steps: 50000
+max_negative_weight: 1500
+target_false_positives_per_hour: 0.2
