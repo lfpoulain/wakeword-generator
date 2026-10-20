@@ -1,153 +1,180 @@
-# wakeword-generator
+<div align="center">
 
-Générateur de mots d’appel en français pour [openWakeWord](https://github.com/dscripka/openWakeWord) : il fabrique un modèle ONNX pour un mot ou une courte expression, à partir de voix françaises de synthèse, puis permet de l’essayer au micro.
+<img src="docs/assets/banniere.svg" alt="Cornelius · générateur de mot d’appel : un mot d’appel français pour openWakeWord, sans enregistrer une seule voix" width="100%" />
 
-Tout se passe sur votre machine, après le téléchargement des ressources. Aucun enregistrement de votre voix n’est nécessaire pour construire le corpus.
+<h3>Votre mot d’appel en français, entraîné sur votre machine, à partir de voix de synthèse.</h3>
 
-Ce générateur a été écrit pour le mot « Cornelius » du miroir [Cornelius](https://github.com/lfpoulain/Cornelius), qui embarque le modèle obtenu. La configuration fournie, `training.yml`, vise toujours ce mot ; il suffit de la modifier pour en entraîner un autre.
+<p>
+  <img alt="Linux et Windows" src="https://img.shields.io/badge/Linux%20%7C%20Windows-0b1312?style=flat-square&logo=linux&logoColor=white" />
+  <img alt="Docker, GPU NVIDIA ou processeur" src="https://img.shields.io/badge/Docker-GPU%20NVIDIA%20ou%20processeur-3fb7a3?style=flat-square&logo=docker&logoColor=white" />
+  <a href="https://github.com/dscripka/openWakeWord"><img alt="Modèle openWakeWord en ONNX" src="https://img.shields.io/badge/openWakeWord-ONNX-3fb7a3?style=flat-square" /></a>
+  <img alt="Testeur en Python 3.12" src="https://img.shields.io/badge/testeur-Python%203.12-3fb7a3?style=flat-square&logo=python&logoColor=white" />
+  <img alt="En français" src="https://img.shields.io/badge/langue-fran%C3%A7ais-3fb7a3?style=flat-square" />
+  <a href="LICENSE"><img alt="Licence PolyForm Noncommercial 1.0.0" src="https://img.shields.io/badge/licence-PolyForm%20NC%201.0.0-b39dff?style=flat-square" /></a>
+</p>
 
-## Sommaire
+<p>
+  <a href="#-démarrer">Démarrer</a> ·
+  <a href="#-ce-quil-fait">Ce qu’il fait</a> ·
+  <a href="#-comment-ça-marche">Comment ça marche</a> ·
+  <a href="#-avec-cornelius">Avec Cornelius</a> ·
+  <a href="docs/README.md">Documentation</a> ·
+  <a href="#-licence">Licence</a>
+</p>
 
-- [Ce qu’il faut](#ce-quil-faut)
-- [Préparer un nouveau mot](#préparer-un-nouveau-mot)
-- [Entraîner le modèle](#entraîner-le-modèle)
-- [Tester au micro](#tester-au-micro)
-- [Utiliser le modèle avec Cornelius](#utiliser-le-modèle-avec-cornelius)
-- [Développer](#développer)
-- [Licences](#licences)
+</div>
 
-## Ce qu’il faut
+---
 
-- **Pour entraîner** : Docker avec des conteneurs Linux, environ 40 Go d’espace libre et une connexion pour les téléchargements initiaux. Un GPU NVIDIA accessible à Docker accélère beaucoup l’entraînement ; le mode processeur fonctionne mais il est plus lent.
-- **Pour tester au micro** : Python 3.12 avec Tkinter, et un micro capable de fournir du son mono à 16 kHz.
+openWakeWord, le logiciel libre qui écoute un mot d’appel, ne livre que des modèles en anglais. Ce générateur fabrique un modèle pour **un mot français de votre choix** : il le fait dire des dizaines de milliers de fois par des voix de synthèse, avec les mots qui lui ressemblent, puis entraîne le modèle avec le script officiel d’openWakeWord. Un testeur au micro permet ensuite de l’essayer et de choisir son seuil.
 
-Les ressources téléchargées (`data/`) et les modèles produits (`output/`) restent dans le dossier et sont exclus de Git. Elles sont conservées pour les mots suivants.
+Il a été écrit pour le mot « Cornelius » du miroir [Cornelius](https://github.com/lfpoulain/Cornelius), qui embarque le modèle obtenu. Sa configuration, `training.yml`, vise toujours ce mot : quelques lignes à changer suffisent pour en entraîner un autre.
 
-## Préparer un nouveau mot
+Tout se passe sur votre ordinateur. Aucune voix réelle n’est enregistrée, ni pour l’entraînement, ni pendant les essais.
 
-Dans `training.yml`, renseignez :
+## 🧰 Ce qu’il faut
 
-- **model_name** : nom court du fichier ONNX, en minuscules ASCII, par exemple `mon_assistant` ;
-- **target_phrase** : une ou plusieurs graphies que les voix françaises prononcent comme le mot voulu ;
-- **custom_negative_phrases** : des mots proches qui ne doivent pas déclencher le modèle.
+| | |
+|---|---|
+| 🐳 **Pour entraîner** | Docker avec des conteneurs Linux (Docker Desktop sous Windows), et environ **40 Go** libres |
+| ⚡ **Pour aller vite** | un GPU NVIDIA accessible à Docker ; sans lui, l’entraînement passe par le processeur, en plus lent |
+| 🎙️ **Pour essayer** | Python 3.12 avec Tkinter, et un micro |
+| 📶 **Une fois** | une connexion pour télécharger les voix et les données (18 Go), gardées pour les mots suivants |
 
-Gardez un nom de modèle différent pour chaque mot. La construction ne remplace jamais un fichier ONNX existant et refuse de mélanger des phrases ou des voix différentes avec un corpus existant sous le même nom. Écoutez et testez les différentes graphies : une variation écrite ne garantit pas la prononciation attendue.
+Le détail, pas à pas, est dans [Préparer la machine](docs/installer.md).
 
-La recette génère 20 000 clips positifs et 20 000 négatifs pour l’entraînement, puis 2 000 de chaque pour la validation. Elle répartit les exemples sur quatre locuteurs français : Siwis, Jessica et Pierre d’UPMC, et Tom. Piper fait varier la vitesse et le rendu de chaque voix ; le script officiel d’openWakeWord ajoute du bruit et de la réverbération, entraîne le classifieur et exporte l’ONNX.
+## 🚀 Démarrer
 
-## Entraîner le modèle
+**1. Récupérer le dépôt**
 
-Le script construit l’image Docker si elle manque, télécharge les voix et les données, génère les WAV, lance l’augmentation puis l’entraînement. Une exécution interrompue peut être relancée : les clips déjà générés et valides sont conservés.
+```sh
+git clone https://github.com/lfpoulain/wakeword-generator.git
+cd wakeword-generator
+```
 
-### Windows (PowerShell)
+**2. Décrire le mot**, dans `training.yml` :
 
-Depuis ce dossier :
+```yaml
+model_name: barnabe          # le nom du fichier produit : output/barnabe.onnx
+target_phrase:               # les façons d’écrire le mot pour que les voix le disent bien
+  - "Barnabé"
+  - "Barna bé"
+custom_negative_phrases:     # les mots proches qui ne doivent pas le déclencher
+  - "Barbara"
+  - "Barnum"
+  - "Bernadette"
+```
+
+Pour reconstruire le modèle « Cornelius », ne changez rien.
+
+**3. Entraîner**
+
+| Windows (PowerShell) | Linux |
+|---|---|
+| `.\build.ps1` | `./build.sh` |
+| sans GPU : `.\build.ps1 -Cpu` | sans GPU : `./build.sh --cpu` |
+
+Le script construit l’image Docker, télécharge les données, génère les clips, puis entraîne. Le premier entraînement est long : laissez-le tourner. Interrompu, il se relance sans refaire ce qui est fini. Le modèle arrive dans **`output/<model_name>.onnx`**.
+
+**4. Essayer au micro**, après avoir [installé le testeur](docs/tester.md#installer-le-testeur) :
+
+| Windows | Linux |
+|---|---|
+| double-clic sur `tester.bat` | `./tester.sh` |
+
+Dites le mot : il passe au vert à chaque détection.
+
+> [!TIP]
+> Pour un mot jamais essayé, écoutez les premiers clips générés avant d’attendre la fin : voir [Écouter les premiers clips](docs/entrainer.md#écouter-les-premiers-clips).
+
+## ✨ Ce qu’il fait
+
+<table>
+  <tr>
+    <td width="50%" valign="top">
+      <h4>🗣️ Il fait parler des voix françaises</h4>
+      Quatre locuteurs Piper (Siwis, Jessica, Pierre et Tom), cinq débits et intonations, chaque graphie du mot à parts égales : 22 000 clips du mot, autant de mots proches.
+    </td>
+    <td width="50%" valign="top">
+      <h4>🎯 Il apprend ce qui n’est pas le mot</h4>
+      Les mots qui lui ressemblent, que vous choisissez, et 2 000 heures de sons et de paroles fournies par openWakeWord.
+    </td>
+  </tr>
+  <tr>
+    <td valign="top">
+      <h4>🏠 Il imite une vraie pièce</h4>
+      Chaque clip est abîmé à dessein : bruits de fond AudioSet, réverbération de 270 lieux réels, égaliseur, hauteur de voix.
+    </td>
+    <td valign="top">
+      <h4>🔁 Il reprend où il s’était arrêté</h4>
+      Téléchargements, clips et caractéristiques déjà faits sont gardés. Une étape se relance seule : <code>.\build.ps1 generate</code>, <code>doctor</code> pour faire le point.
+    </td>
+  </tr>
+  <tr>
+    <td valign="top">
+      <h4>🛡️ Il ne mélange rien</h4>
+      Il refuse de mêler deux recettes sous un même nom, ne remplace jamais un modèle existant et vérifie l’empreinte des voix et des données téléchargées.
+    </td>
+    <td valign="top">
+      <h4>🎙️ Il s’essaie au micro</h4>
+      Une petite fenêtre affiche le score en direct, compte les détections et aide à choisir le seuil. Le son n’est jamais enregistré.
+    </td>
+  </tr>
+</table>
+
+## 🔬 Comment ça marche
+
+```mermaid
+flowchart LR
+    A["training.yml<br/>le mot et les mots proches"] --> B["generate<br/>voix Piper<br/>44 000 clips"]
+    B --> C["augment<br/>bruit, réverbération,<br/>caractéristiques"]
+    C --> D["train<br/>script officiel<br/>d’openWakeWord"]
+    D --> E["le modèle ONNX<br/>environ 200 Ko"]
+```
+
+| Étape | Ce qui se passe | Sur |
+|---|---|---|
+| `prepare` | télécharge les voix, les sons de fond, les pièces et les 2 000 heures de négatifs | le réseau, une seule fois |
+| `generate` | fait dire le mot et les mots proches aux voix françaises | le processeur |
+| `augment` | abîme les clips comme un vrai micro, puis en calcule les caractéristiques | le processeur |
+| `train` | entraîne le petit classifieur d’openWakeWord et l’exporte en ONNX (environ 200 Ko) | le GPU, ou le processeur |
+
+Tout tourne dans une image Docker aux versions figées (CUDA 11.7, PyTorch 1.13, openWakeWord à un commit précis). Le détail est dans [Comment ça marche](docs/fonctionnement.md).
+
+## 🪞 Avec Cornelius
+
+Cornelius cherche son modèle dans `models/cornelius.onnx`. Copiez-y le vôtre, ou indiquez son chemin dans son `.env`, puis relancez Cornelius :
 
 ```powershell
-.\build.ps1
+Copy-Item output\cornelius.onnx ..\cornelius\models\cornelius.onnx
 ```
 
-Sans GPU NVIDIA :
-
-```powershell
-.\build.ps1 -Cpu
+```ini
+CORNELIUS_WAKE_MODEL=/chemin/vers/wakeword-generator/output/barnabe.onnx
+CORNELIUS_WAKE_THRESHOLD=0.5
 ```
 
-### Linux
+Les satellites audio de Cornelius envoient leur son à l’ordinateur, qui y cherche le mot avec ce même modèle : un seul fichier à changer pour toute la maison. Tout autre programme qui utilise openWakeWord en ONNX peut aussi le charger. Voir [Utiliser le modèle](docs/utiliser.md).
 
-Depuis ce dossier :
+## 📚 Documentation
 
-```sh
-./build.sh
-# ou, sans GPU NVIDIA :
-./build.sh --cpu
-```
+| | |
+|---|---|
+| **Démarrer** | [Préparer la machine](docs/installer.md) · [Entraîner un mot](docs/entrainer.md) |
+| **Essayer** | [Tester au micro](docs/tester.md) : juger le modèle, choisir le seuil |
+| **Utiliser** | [Utiliser le modèle](docs/utiliser.md) : Cornelius, un autre programme, le partager |
+| **Comprendre** | [Comment ça marche](docs/fonctionnement.md) · [Les réglages de `training.yml`](docs/reglages.md) |
+| **En cas de souci** | [Dépannage](docs/depannage.md) |
+| **Suivre** | [Historique des changements](CHANGELOG.md) · [Contribuer](CONTRIBUTING.md) |
 
-Le script équivaut à :
+## 🔒 Confidentialité
 
-```sh
-docker build -t wakeword-fr-training .
-docker run --rm --gpus all --shm-size=8g -v "$(pwd):/workspace" -w /workspace wakeword-fr-training --config training.yml build
-```
+- 🏠 L’entraînement se fait entièrement sur votre ordinateur. Seuls les téléchargements passent par Internet.
+- 🗣️ Aucune voix réelle n’entre dans le corpus : tous les exemples du mot sont des voix de synthèse.
+- 🎙️ Le testeur analyse le micro à la volée, sans rien enregistrer ni envoyer.
 
-Pour le mode processeur, retirez `--gpus all` de la seconde commande.
+## 📜 Licence
 
-Le modèle final est `output/<model_name>.onnx`. Les WAV et les matrices d’entraînement se trouvent dans `output/<model_name>/`.
+Le code de ce dépôt est distribué, comme Cornelius, sous la [PolyForm Noncommercial License 1.0.0](LICENSE) : utilisation, partage et modification libres pour un usage non commercial, en gardant la ligne `Required Notice` du fichier `LICENSE`.
 
-## Tester au micro
-
-Le testeur ouvre une fenêtre locale avec le modèle indiqué par `training.yml`. Il n’enregistre pas le son. Il montre le score en direct et colore le mot en vert pendant deux secondes à chaque détection.
-
-### Windows
-
-Installez Python 3.12, puis depuis ce dossier :
-
-```powershell
-py -3.12 -m venv .venv-test
-.\.venv-test\Scripts\python.exe -m pip install -r tester-requirements.txt
-.\.venv-test\Scripts\python.exe -m pip install --no-deps openwakeword==0.6.0
-.\tester.bat
-```
-
-Les lancements suivants se font par double-clic sur `tester.bat`. Le premier télécharge les deux modèles de prétraitement d’openWakeWord, vérifiés par SHA-256. Choisissez le micro dans la fenêtre, gardez le seuil à **0,5** pour commencer, puis cliquez sur **Démarrer**.
-
-### Linux
-
-Installez Python 3.12 avec Tkinter et PortAudio (Debian et Ubuntu : `sudo apt install python3-tk libportaudio2` ; Arch : `sudo pacman -S tk portaudio`), puis depuis ce dossier :
-
-```sh
-python3.12 -m venv .venv-test
-.venv-test/bin/python -m pip install -r tester-requirements.txt
-.venv-test/bin/python -m pip install --no-deps openwakeword==0.6.0
-./tester.sh
-```
-
-`./tester.sh` prépare les modèles de prétraitement puis ouvre la fenêtre ; il accepte les options de `tester.py`.
-
-### Options du testeur
-
-- `tester.py --model chemin/vers/modele.onnx --label "Mon mot"` : essayer un autre ONNX sans changer `training.yml` ;
-- `tester.py --check` : vérifier le chargement du modèle et la présence d’un micro, sans ouvrir la fenêtre.
-
-Répétez les essais avec plusieurs personnes, distances et bruits, puis essayez les mots proches. Le score d’entraînement ne remplace pas ces essais réels.
-
-## Utiliser le modèle avec Cornelius
-
-Cornelius cherche son modèle dans `models/cornelius.onnx`, à la racine de son dépôt. Pour remplacer celui qui est fourni par votre version, copiez le fichier produit :
-
-```sh
-cp output/cornelius.onnx ../Cornelius/models/cornelius.onnx
-```
-
-```powershell
-Copy-Item output\cornelius.onnx ..\Cornelius\models\cornelius.onnx
-```
-
-Adaptez `../Cornelius` à l’emplacement de votre copie de Cornelius, ou indiquez un autre fichier avec la variable `CORNELIUS_WAKE_MODEL` de son `.env`. Relancez ensuite Cornelius. Le détail est dans [la page « Mot d’appel » de Cornelius](https://github.com/lfpoulain/Cornelius/blob/main/docs/fonctionnalites/mot-d-appel.md).
-
-Tout autre programme qui utilise openWakeWord avec l’inférence ONNX peut charger le modèle de la même façon.
-
-## Développer
-
-| Fichier | Rôle |
-| --- | --- |
-| `training.yml` | mot visé, mots proches et réglages de l’entraînement |
-| `pipeline.py` | génération des clips, augmentation et entraînement (dans Docker) |
-| `download_assets.py` | téléchargement des voix Piper et des données d’openWakeWord |
-| `Dockerfile` | environnement d’entraînement figé (CUDA 11.7, PyTorch 1.13, openWakeWord à un commit précis) |
-| `build.ps1`, `build.sh` | construction de l’image et lancement de l’entraînement |
-| `tester.py`, `tester.bat`, `tester.sh` | testeur au micro |
-| `tests/` | tests de la répartition des voix et des phrases |
-
-Les tests se lancent avec pytest :
-
-```sh
-python -m pip install pytest pyyaml requests
-python -m pytest tests -q
-```
-
-## Licences
-
-Le code de ce dépôt est distribué sous la [PolyForm Noncommercial License 1.0.0](LICENSE) : usage, partage et modification permis pour un usage non commercial, en gardant la ligne `Required Notice` du fichier `LICENSE`. Ce n’est pas une licence « open source » au sens de l’OSI, puisqu’elle exclut l’usage commercial.
-
-Le dépôt ne contient aucun poids, aucune voix ni aucun corpus : ils sont téléchargés sur votre machine, chacun avec sa licence. Ces licences pèsent sur les modèles que vous entraînez ; lisez [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) avant de diffuser un modèle ou d’en faire un usage commercial.
+Le dépôt ne contient aucun poids, aucune voix ni aucun corpus : ils sont téléchargés sur votre machine, chacun avec sa licence, et ces licences s’appliquent aux modèles que vous entraînez. Un modèle produit se diffuse sous **CC BY-NC-SA 4.0**, pour un usage non commercial, avec ses attributions : voir [Partager le modèle](docs/utiliser.md#partager-le-modèle) et [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).

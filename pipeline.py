@@ -61,7 +61,7 @@ def verify_voice_files(voices: list[Path]) -> None:
     import json
 
     if not voices:
-        raise ValueError("Aucune voix française dans data/voices. Voir README.")
+        raise ValueError("Aucune voix française dans data/voices : lancez l’étape prepare")
     for path in voices:
         metadata_path = Path(str(path) + ".json")
         if not path.is_file() or not metadata_path.is_file():
@@ -183,7 +183,7 @@ def generate(config: dict, voices: list[Path]) -> None:
     targets = [str(value).strip() for value in config["target_phrase"]]
     negatives = [str(value).strip() for value in config["custom_negative_phrases"]]
     if not negatives or any(not value for value in targets + negatives):
-        raise ValueError("Renseigne des expressions négatives françaises dans training.yml")
+        raise ValueError("Renseignez des expressions négatives françaises dans training.yml")
     if set(x.casefold() for x in targets) & set(x.casefold() for x in negatives):
         raise ValueError("Une expression négative est identique au mot d'appel")
     import json
@@ -197,7 +197,7 @@ def generate(config: dict, voices: list[Path]) -> None:
         previous = json.loads(manifest_path.read_text(encoding="utf-8"))
         if previous != manifest:
             raise ValueError("La recette de génération, les phrases ou les voix ont changé ; "
-                             "utilise un nouveau output_dir pour éviter de mélanger les clips")
+                             "choisissez un autre model_name pour ne pas mélanger les clips")
     else:
         manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2),
                                  encoding="utf-8")
@@ -217,8 +217,8 @@ def generate(config: dict, voices: list[Path]) -> None:
             existing = sorted(p for p in folder.glob("*.wav") if p.stem.isdigit())
             existing_ids = {int(path.stem) for path in existing}
             if any(index >= count for index in existing_ids):
-                raise ValueError(f"{folder} contient des indices hors limite ; "
-                                 "utilise un output_dir vide pour ce réglage")
+                raise ValueError(f"{folder} contient plus de clips que demandé ; "
+                                 "choisissez un autre model_name pour ce réglage")
             for path in existing:
                 normalize_wav(path)
             missing = [index for index in range(count) if index not in existing_ids]

@@ -2,7 +2,7 @@
 setlocal
 pushd "%~dp0" || exit /b 1
 if not exist ".venv-test\Scripts\python.exe" (
-  echo Environnement du testeur absent. Suivez README.md, section Tester au microphone.
+  echo Environnement du testeur absent. Suivez docs\tester.md, section Installer le testeur.
   pause
   popd
   exit /b 1

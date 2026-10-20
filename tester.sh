@@ -5,7 +5,7 @@ set -euo pipefail
 cd "$(dirname "$0")"
 python=.venv-test/bin/python
 if [ ! -x "$python" ]; then
-  echo "Environnement du testeur absent. Suivez README.md, section Tester au microphone." >&2
+  echo "Environnement du testeur absent. Suivez docs/tester.md, section Installer le testeur." >&2
   exit 1
 fi
 "$python" tester.py --prepare

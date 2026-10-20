@@ -13,8 +13,8 @@ Ils sont installés dans l’image Docker, pas copiés dans le dépôt.
 | Élément | Licence | Remarque |
 | --- | --- | --- |
 | [openWakeWord](https://github.com/dscripka/openWakeWord), David Scripka | Apache 2.0 | Script d’entraînement et architecture du modèle. |
-| [piper-sample-generator](https://github.com/dscripka/piper-sample-generator), David Scripka | MIT | Génération des clips de synthèse. |
-| Moteur de synthèse [Piper](https://github.com/OHF-Voice/piper1-gpl) | GPL 3.0 | Si vous distribuez l’image Docker construite, respectez la GPL pour elle. Cela ne change pas la licence du code de ce dépôt. |
+| [piper-sample-generator](https://github.com/dscripka/piper-sample-generator), David Scripka | MIT | Chargé par le script officiel ; les clips sont générés directement avec Piper. |
+| Moteur de synthèse [Piper](https://github.com/OHF-Voice/piper1-gpl) et [espeak-ng](https://github.com/espeak-ng/espeak-ng) | GPL 3.0 | Si vous distribuez l’image Docker construite, respectez la GPL pour elle. Cela ne change pas la licence du code de ce dépôt. |
 | PyTorch, torchaudio, ONNX, ONNX Runtime, NumPy, SciPy, scikit-learn, speechbrain, audiomentations… | BSD, MIT ou Apache 2.0 | Versions fixées dans le `Dockerfile` et `tester-requirements.txt`. |
 
 ## Données et modèles téléchargés
