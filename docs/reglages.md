@@ -63,7 +63,7 @@ Le générateur garde les clips et les caractéristiques déjà faits. Selon le 
 | `target_phrase` ou `custom_negative_phrases` | un nouveau `model_name` : le générateur refuse de mélanger les clips |
 | `n_samples` ou `n_samples_val` à la hausse | rien : les clips manquants sont générés, l’augmentation refaite |
 | `n_samples` ou `n_samples_val` à la baisse | un nouveau `model_name` |
-| augmentation (`augmentation_rounds`, sons de fond, réponses de pièces) | supprimer `output/<model_name>/*_features_*.npy` |
+| augmentation (`augmentation_rounds`, sons de fond, réponses de pièces) | supprimer les caractéristiques du dossier de travail : `docker run --rm -v wakeword-travail:/travail --entrypoint rm wakeword-fr-training -rf /travail/<model_name>/positive_features_train.npy` (et les trois autres `*_features_*.npy`) |
 | entraînement (`model_type`, `layer_size`, `steps`, poids, lots) | renommer ou déplacer `output/<model_name>.onnx`, puis l’étape `train` |
 
 ## Voir aussi

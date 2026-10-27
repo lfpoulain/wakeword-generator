@@ -79,7 +79,7 @@ Pour une voix d’au moins 20 locuteurs, le dernier cinquième serait réservé 
 
 ### La provenance
 
-Au premier lancement, `output/<model_name>/generation.json` retient la recette : sa version, les graphies, les mots proches, et chaque voix (nom et taille du fichier). Si l’un d’eux change ensuite sous le même `model_name`, le générateur refuse de continuer plutôt que de mélanger deux corpus.
+Au premier lancement, `generation.json`, dans le dossier de travail, retient la recette : sa version, les graphies, les mots proches, et chaque voix (nom et taille du fichier). Si l’un d’eux change ensuite sous le même `model_name`, le générateur refuse de continuer plutôt que de mélanger deux corpus.
 
 Chaque clip est écrit sous un nom provisoire, puis renommé une fois complet : un arrêt brutal ne laisse jamais de clip à moitié écrit.
 
@@ -91,7 +91,11 @@ C’est le script officiel d’openWakeWord (`train.py --augment_clips`) qui s�
 2. il subit des altérations tirées au hasard, chacune avec une certaine probabilité : égaliseur, légère distorsion, hauteur décalée de trois demi-tons au plus, filtre coupe-bande, bruit coloré, son de fond AudioSet parfois plus fort que la voix, volume, réverbération d’une pièce du MIT ;
 3. ses caractéristiques sont calculées par les modèles de prétraitement.
 
-Il en sort quatre fichiers dans `output/<model_name>/` : `positive_features_train.npy`, `negative_features_train.npy`, `positive_features_test.npy`, `negative_features_test.npy`. Le générateur force cette étape sur le processeur.
+Il en sort quatre fichiers dans le dossier de travail : `positive_features_train.npy`, `negative_features_train.npy`, `positive_features_test.npy`, `negative_features_test.npy`. Le générateur force cette étape sur le processeur : sur GPU, le modèle d’embedding donne des valeurs différentes de celles du processeur, celui qui calcule les caractéristiques à l’usage, et PyTorch 1.13 en CUDA 11.7 ne sait pas faire de FFT sur les RTX 40.
+
+### Le dossier de travail
+
+Clips et caractéristiques (quelques Go par mot) vivent dans le volume Docker `wakeword-travail`, sous `/travail/<model_name>/`, et non dans `output/` : ouvrir un fichier à travers le dossier partagé entre Windows et Docker coûte environ 10 ms, soit un tiers du temps de génération et d’augmentation. Sans la variable `WAKEWORD_WORK` (commandes Docker lancées à la main), tout reste dans `output/<model_name>/`. L’étape `ecoute` copie quelques clips dans `output/<model_name>-ecoute/`.
 
 Si ces quatre fichiers sont déjà complets, l’étape est sautée.
 
@@ -136,7 +140,7 @@ Le `Dockerfile` installe openWakeWord à un commit précis et y applique deux re
 ./build.sh train --cpu
 ```
 
-Seules `build` et `train` demandent le GPU. Les commandes équivalentes, sans les scripts :
+Seules `build` et `train` demandent le GPU. La génération reste sur le processeur, en parallèle : pour des phrases de deux mots, Piper y est quatre fois plus rapide que sur le GPU. Les commandes équivalentes, sans les scripts (ajouter `-v wakeword-travail:/travail -e WAKEWORD_WORK=/travail` pour le dossier de travail) :
 
 ```sh
 docker build -t wakeword-fr-training .

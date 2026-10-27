@@ -135,7 +135,7 @@ flowchart LR
 | Étape | Ce qui se passe | Sur |
 |---|---|---|
 | `prepare` | télécharge les voix, les sons de fond, les pièces et les 2 000 heures de négatifs | le réseau, une seule fois |
-| `generate` | fait dire le mot et les mots proches aux voix françaises | le processeur |
+| `generate` | fait dire le mot et les mots proches aux voix françaises | le processeur, en parallèle |
 | `augment` | abîme les clips comme un vrai micro, puis en calcule les caractéristiques | le processeur |
 | `train` | entraîne le petit classifieur d’openWakeWord et l’exporte en ONNX (environ 200 Ko) | le GPU, ou le processeur |
 

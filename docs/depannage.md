@@ -56,7 +56,7 @@ docker build -t wakeword-fr-training .
 | Message | Cause | Que faire |
 |---|---|---|
 | `Modèle déjà présent : … ; choisissez un autre model_name` | le générateur ne remplace jamais un modèle | renommez ou déplacez l’ancien `.onnx`, ou changez `model_name` |
-| `La recette de génération, les phrases ou les voix ont changé ; choisissez un autre model_name…` | `training.yml` ne correspond plus aux clips déjà générés sous ce nom | changez `model_name`, ou supprimez `output/<model_name>/` pour tout refaire |
+| `La recette de génération, les phrases ou les voix ont changé ; choisissez un autre model_name…` | `training.yml` ne correspond plus aux clips déjà générés sous ce nom | changez `model_name`, ou supprimez le dossier de travail pour tout refaire : `docker run --rm -v wakeword-travail:/travail --entrypoint rm wakeword-fr-training -rf /travail/<model_name>` |
 | `La recette a changé depuis la génération des clips` | même cause, à l’étape `augment` ou `train` | même remède |
 | `… contient plus de clips que demandé ; choisissez un autre model_name…` | `n_samples` ou `n_samples_val` a été baissé | changez `model_name`, ou remettez la valeur d’avant |
 | `Clips incomplets : … (12400/20000)` | `augment` ou `train` lancé avant la fin de la génération | lancez `generate`, ou `build` |

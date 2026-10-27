@@ -26,7 +26,7 @@ Tout arrive dans le dossier `data/` du dépôt, exclu de Git. Rien n’est reté
 | 270 réponses de pièces du MIT | 9 Mo | `data/rir/` | ajouter la réverbération d’une pièce |
 | Deux modèles de prétraitement d’openWakeWord | 2,4 Mo | `data/preprocess/` | pour le testeur seulement |
 
-S’y ajoutent l’image Docker (CUDA, PyTorch et les outils d’entraînement), puis, pour chaque mot, quelques Go de clips dans `output/<model_name>/`. Un téléchargement interrompu reprend là où il s’était arrêté.
+S’y ajoutent l’image Docker (CUDA, PyTorch et les outils d’entraînement), puis, pour chaque mot, quelques Go de clips dans le volume Docker `wakeword-travail`. Un téléchargement interrompu reprend là où il s’était arrêté.
 
 Les voix et le fragment AudioSet sont vérifiés par leur empreinte SHA-256 : un fichier modifié à la source est refusé.
 

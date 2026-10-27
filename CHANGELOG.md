@@ -4,6 +4,20 @@ Cette page retrace les changements du générateur, du plus récent au plus anci
 
 ## Non publié
 
+### 2026-10-27 : plus rapide, et d’autres mots
+
+**Ajouté**
+
+- `build.ps1 -Config lumos.yml` et `./build.sh --config=lumos.yml` : entraîner une autre recette que `training.yml`. Première recette fournie : « Lumos » (`lumos.yml`).
+- Réglages facultatifs `generation_workers` et `generation_threads` : processus et threads de Piper pendant la génération.
+- Étape `ecoute` : copie 12 clips de chaque dossier dans `output/<model_name>-ecoute/`, pour les écouter.
+
+**Modifié**
+
+- La génération tourne en parallèle : 16 processus de 2 threads par défaut, environ 55 clips/s au lieu de 12 sur un processeur de 32 threads. Piper reste sur le processeur, quatre fois plus rapide que sur le GPU pour des phrases si courtes.
+- Clips et caractéristiques vivent dans le volume Docker `wakeword-travail` (`/travail/<model_name>/`) au lieu de `output/<model_name>/` : ouvrir un fichier à travers le dossier partagé avec Windows coûte environ 10 ms. Sur 4 400 clips : génération 93 → 60 s, augmentation 66 → 44 s. Le modèle arrive toujours dans `output/`. Un ancien dossier `output/<model_name>/` est recopié une fois dans le volume.
+- L’augmentation reste sur le processeur, après essai sur GPU : le modèle d’embedding y donne des valeurs différentes de celles du processeur (0,66 d’écart moyen pour une amplitude de 13), pour 5 s gagnées sur 4 400 clips ; et PyTorch 1.13 en CUDA 11.7 ne sait pas faire de FFT sur les RTX 40.
+
 ### 2026-10-20 : documentation et vitrine du dépôt
 
 **Ajouté**

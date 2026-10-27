@@ -77,8 +77,8 @@ Le script construit l’image Docker si elle manque, puis enchaîne quatre étap
 | Étape | Ce qui se passe | Durée |
 |---|---|---|
 | `prepare` | télécharge les voix, les sons de fond, les réponses de pièces et les caractéristiques négatives | longue la première fois (18 Go en tout), immédiate ensuite |
-| `generate` | fait dire le mot et les mots proches aux voix françaises : 44 000 clips WAV | longue, sur le processeur |
-| `augment` | ajoute bruit et réverbération, puis calcule les caractéristiques des clips | longue, sur le processeur |
+| `generate` | fait dire le mot et les mots proches aux voix françaises : 44 000 clips WAV | une dizaine de minutes, sur le processeur (16 processus en parallèle) |
+| `augment` | ajoute bruit et réverbération, puis calcule les caractéristiques des clips | une dizaine de minutes, sur le processeur |
 | `train` | entraîne le modèle, puis l’exporte en ONNX | plus rapide avec un GPU |
 
 Le premier entraînement prend donc du temps : laissez-le tourner. Le détail de chaque étape est dans [Comment ça marche](fonctionnement.md).
@@ -92,7 +92,7 @@ Modèle ONNX prêt dans output/.
 
 ## Écouter les premiers clips
 
-Pour un mot jamais essayé, écoutez les clips avant d’y passer des heures. Dès que la génération commence (la ligne `positive_train: 0/20000, génération de 20000`), les clips du mot arrivent dans `output/<model_name>/positive_train/` : `00000000.wav`, `00000001.wav`… Écoutez-en une dizaine : les quatre voix s’y succèdent, avec chaque graphie.
+Pour un mot jamais essayé, écoutez les clips avant d’y passer des heures. Dès que la génération a fait ses premiers clips (la ligne `1000/20000`), lancez dans un autre terminal `.\build.ps1 -Config <recette>.yml -Etape ecoute` (ou `./build.sh ecoute --config=<recette>.yml`) : douze clips de chaque dossier arrivent dans `output/<model_name>-ecoute/`. Écoutez ceux de `positive_train/` : les quatre voix s’y succèdent, avec chaque graphie.
 
 Les mots proches suivent dans `negative_train/`, une fois les 20 000 clips du mot faits.
 
@@ -152,12 +152,17 @@ Les chemins sont ceux du conteneur : `/workspace` est le dossier du dépôt.
 | Fichier | Contenu |
 |---|---|
 | `output/<model_name>.onnx` | **le modèle**, environ 200 Ko : le seul fichier à garder |
-| `output/<model_name>/generation.json` | la provenance des clips : graphies, mots proches, voix |
-| `output/<model_name>/positive_train/`, `positive_test/` | les clips du mot |
-| `output/<model_name>/negative_train/`, `negative_test/` | les clips des mots proches |
-| `output/<model_name>/*_features_*.npy` | les caractéristiques calculées par l’augmentation |
+| `generation.json` (dossier de travail) | la provenance des clips : graphies, mots proches, voix |
+| `positive_train/`, `positive_test/` (dossier de travail) | les clips du mot |
+| `negative_train/`, `negative_test/` (dossier de travail) | les clips des mots proches |
+| `*_features_*.npy` (dossier de travail) | les caractéristiques calculées par l’augmentation |
+| `output/<model_name>-ecoute/` | quelques clips copiés par l’étape `ecoute` |
 
-Le dossier `output/<model_name>/` pèse quelques Go. Une fois le modèle satisfaisant, il peut être supprimé ; il resservirait seulement pour réentraîner avec d’autres réglages.
+Le dossier de travail est `/travail/<model_name>/`, dans le volume Docker `wakeword-travail` : il pèse quelques Go. Une fois le modèle satisfaisant, il peut être supprimé ; il resservirait seulement pour réentraîner avec d’autres réglages :
+
+```sh
+docker run --rm -v wakeword-travail:/travail --entrypoint rm wakeword-fr-training -rf /travail/<model_name>
+```
 
 ## Recommencer
 
@@ -165,7 +170,7 @@ Le dossier `output/<model_name>/` pèse quelques Go. Une fois le modèle satisfa
 |---|---|
 | un autre mot, ou d’autres graphies ou mots proches | un nouveau `model_name`, puis `build` |
 | les mêmes clips, avec d’autres réglages d’entraînement (`steps`, `layer_size`…) | je renomme ou déplace `output/<model_name>.onnx`, puis `.\build.ps1 train` |
-| refaire l’augmentation (autres sons de fond, `augmentation_rounds`) | je supprime `output/<model_name>/*_features_*.npy`, puis `build` |
+| refaire l’augmentation (autres sons de fond, `augmentation_rounds`) | je supprime les `*_features_*.npy` du dossier de travail (commande dans [Réglages](reglages.md)), puis `build` |
 
 Le générateur ne remplace jamais un modèle existant, et refuse de mélanger des clips générés avec d’autres graphies ou d’autres voix sous le même nom : voir [Dépannage](depannage.md).
 
